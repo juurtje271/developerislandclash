@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="nl" class="js">
+<head>
+  <link rel="stylesheet" href="/style.css">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Island Clash — Digisprint</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+
+</head>
+<body>
+<!-- ISLAND CLASH DOCENT PANEL FIX -->
+<div class="toast" id="toast"></div>
+
+<!-- ════════════════════════════════════════
+     AUTH PAGE
+     ════════════════════════════════════════ -->
+<div id="auth-page">
+  <div class="auth-page">
+    <div class="auth-logo">
+      <span class="auth-logo-icon">🏝️</span>
+      <span class="auth-logo-text">Island<span>Clash</span></span>
+    </div>
+    <div class="auth-card">
+      <h2>Welkom! 👋</h2>
+      <p class="auth-sub">Kies hoe je wilt inloggen</p>
+      <div class="role-selector">
+        <button class="role-btn active" onclick="setLoginRole('leerling',this)" id="role-leerling">🎮 Leerling</button>
+        <button class="role-btn" onclick="setLoginRole('docent',this)" id="role-docent">👩‍🏫 Docent</button>
+      </div>
+
+      <!-- LEERLING LOGIN: alleen code -->
+      <div id="leerling-login-form">
+        <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem;text-align:center;">Voer de 5-teken code in die je docent heeft gegeven</p>
+        <p style="font-size:.75rem;color:var(--muted2);margin-bottom:.75rem;text-align:center;">(3 hoofdletters + 2 cijfers — bv. <strong style="color:var(--accent4);">ABX42</strong>)</p>
+        <div class="code-boxes" id="code-boxes">
+          <input class="code-box" id="cb0" maxlength="1" type="text" inputmode="text" autocomplete="off" oninput="codeBoxInput(0)" onkeydown="codeBoxKey(event,0)"/>
+          <input class="code-box" id="cb1" maxlength="1" type="text" inputmode="text" autocomplete="off" oninput="codeBoxInput(1)" onkeydown="codeBoxKey(event,1)"/>
+          <input class="code-box" id="cb2" maxlength="1" type="text" inputmode="text" autocomplete="off" oninput="codeBoxInput(2)" onkeydown="codeBoxKey(event,2)"/>
+          <span class="code-box-sep">—</span>
+          <input class="code-box" id="cb3" maxlength="1" type="text" inputmode="numeric" autocomplete="off" oninput="codeBoxInput(3)" onkeydown="codeBoxKey(event,3)"/>
+          <input class="code-box" id="cb4" maxlength="1" type="text" inputmode="numeric" autocomplete="off" oninput="codeBoxInput(4)" onkeydown="codeBoxKey(event,4)"/>
+        </div>
+        <span class="form-error" id="code-login-err" style="display:none;text-align:center;margin-bottom:.5rem;"></span>
+        <button class="btn btn-primary btn-full btn-lg" style="margin-top:.75rem;" onclick="doCodeLogin()">Inloggen →</button>
+        <div class="auth-info-box">🔒 Je krijgt een code van je docent. Zelf registreren is niet mogelijk.</div>
+      </div>
+
+      <!-- DOCENT LOGIN: gebruikersnaam + wachtwoord -->
+      <div id="docent-login-form" class="hidden">
+        <div class="form-group">
+          <label>Gebruikersnaam</label>
+          <input type="text" id="login-user" placeholder="Jouw gebruikersnaam" autocomplete="username" onkeydown="if(event.key==='Enter')doDocentLogin()"/>
+          <span class="form-error" id="login-user-err"></span>
+        </div>
+        <div class="form-group">
+          <label>Wachtwoord</label>
+          <input type="password" id="login-pass" placeholder="Jouw wachtwoord" autocomplete="current-password" onkeydown="if(event.key==='Enter')doDocentLogin()"/>
+          <span class="form-error" id="login-pass-err"></span>
+        </div>
+        <button class="btn btn-primary btn-full btn-lg" onclick="doDocentLogin()">Inloggen →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     GAME PAGE
+     ════════════════════════════════════════ -->
+<div id="game-page" class="hidden">
+  <nav class="nav">
+    <div class="nav-inner">
+      <div class="nav-logo" onclick="showTab('gate')">
+        <span class="nav-logo-icon">🏝️</span>
+        <span class="nav-logo-text">Island<span>Clash</span></span>
+      </div>
+      <div class="nav-hud" id="nav-hud">
+        <div class="hud-pill">🪙 <span id="hud-coins">0</span></div>
+        <div class="hud-pill">💎 <span id="hud-gems">0</span></div>
+        <div class="hud-pill">⚡ <span id="hud-elixir">0</span></div>
+        <div class="hud-pill">✨ <span id="hud-xp">0</span> XP</div>
+        <div class="hud-pill">🏆 <span id="hud-trophies">0</span></div>
+        <div class="hud-pill">🏝️ <span id="hud-owned">0</span>/500</div>
+      </div>
+      <div class="nav-right">
+        <nav class="nav-tabs">
+          <button class="nav-tab" onclick="showTab('quizzes')" id="tab-quizzes">🧠 <span class="tab-label">Quizzen</span></button>
+          <button class="nav-tab" onclick="openStudentLessons()" id="tab-lessons">📚 <span class="tab-label">Lessen</span></button>
+          <button class="nav-tab hidden" onclick="showTab('school')" id="tab-school">🏫 <span class="tab-label">Mijn school</span></button>
+          <button class="nav-tab" onclick="showTab('islands')" id="tab-islands">🗺️ <span class="tab-label">Eilanden</span></button>
+          <button class="nav-tab" onclick="showTab('build')" id="tab-build">🏗️ <span class="tab-label">Bouwen</span></button>
+          <button class="nav-tab" onclick="showTab('leaderboard')" id="tab-leaderboard">🏆 <span class="tab-label">Scores</span></button>
+          <button class="nav-tab" onclick="showTab('shop')" id="tab-shop">🛒 <span class="tab-label">Shop</span></button>
+          <button class="nav-tab" onclick="showTab('tests')" id="tab-tests">📝 <span class="tab-label">Toetsen</span></button>
+          <button class="nav-tab" onclick="showTab('extras')" id="tab-extras">✨ <span class="tab-label">Extra</span></button>
+          <button class="nav-tab hidden" onclick="showTab('admin')" id="tab-admin">👩‍🏫 <span class="tab-label">Docent Panel</span></button>
+          <button class="nav-tab hidden" onclick="showTab('student-tools')" id="tab-student-tools">📚 <span class="tab-label">Mijn voortgang</span></button>
+        </nav>
+        <div class="nav-user" id="nav-user-btn" onclick="toggleUserMenu()">
+          <div class="nav-avatar" id="nav-avatar" style="background:#1f2a5e;color:#7b8fff;">?</div>
+          <span id="nav-username">—</span>
+          <span style="font-size:.68rem;color:var(--muted);">▾</span>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div id="user-menu" class="hidden" style="position:fixed;top:calc(var(--nav-height)+8px);right:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:.75rem;z-index:200;min-width:175px;animation:slideDown .2s ease;">
+    <div style="padding:.3rem .5rem;font-size:.78rem;color:var(--muted);font-weight:700;border-bottom:1px solid var(--border);margin-bottom:.4rem;" id="um-info">—</div>
+    <button id="um-teacher-btn" class="btn btn-primary btn-full btn-sm hidden" style="justify-content:flex-start;margin-bottom:.35rem;" onclick="showTab('admin');toggleUserMenu();">👩‍🏫 Docent Panel</button>
+    <button class="btn btn-ghost btn-full btn-sm" style="justify-content:flex-start;" onclick="doLogout()">🚪 Uitloggen</button>
+  </div>
+
+  <main class="main">
+
+    <!-- QUIZ HUB -->
+    <section class="screen" id="screen-quizzes">
+      <div class="admin-wrap">
+        <div class="admin-header">
+          <div><h1>🧠 Quizzen</h1><p style="color:var(--muted);margin-top:.2rem;">Kies een eiland, bekijk je scores en maak je volgende quiz.</p></div>
+          <span class="badge badge-accent">500 quizzen</span>
+        </div>
+        <div class="card" style="margin-bottom:1rem;">
+          <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:.6rem;align-items:end;">
+            <div class="form-group" style="margin:0;"><label>🔍 Zoek eiland</label><input id="quiz-hub-search" placeholder="Naam of nummer..." oninput="renderQuizHub()"></div>
+            <div class="form-group" style="margin:0;"><label>Status</label><select id="quiz-hub-filter" onchange="renderQuizHub()"><option value="all">Alle quizzen</option><option value="todo">Nog te maken</option><option value="done">Voltooid</option><option value="locked">Vergrendeld</option></select></div>
+            <div class="form-group" style="margin:0;"><label>Sorteer</label><select id="quiz-hub-sort" onchange="renderQuizHub()"><option value="number">Eilandnummer</option><option value="name">Naam</option><option value="score">Beste score</option></select></div>
+          </div>
+        </div>
+        <div id="quiz-hub-stats" class="admin-grid" style="margin-bottom:1rem;"></div>
+        <div id="quiz-hub-list"></div>
+      </div>
+    </section>
+
+    <!-- SCHOOLLESSEN VOOR LEERLINGEN -->
+    <section class="screen" id="screen-lessons">
+      <div class="admin-wrap">
+        <div class="admin-header"><div><h1>📚 Mijn lessen</h1><p style="color:var(--muted);margin-top:.2rem;">Bekijk lessen die je docent voor jouw klas of groep heeft klaargezet.</p></div><span class="badge badge-accent">School</span></div>
+        <div id="student-lessons-content"></div>
+      </div>
+    </section>
+
+    <!-- SCHOOL DASHBOARD VOOR LEERLINGEN -->
+    <section class="screen" id="screen-school">
+      <div class="admin-wrap">
+        <div class="admin-header"><div><h1>🏫 Mijn school</h1><p style="color:var(--muted);margin-top:.2rem;">Lessen, huiswerk, toetsen, cijfers, rooster en agenda op één plek.</p></div><span class="badge badge-accent">School</span></div>
+        <div id="student-school-content"></div>
+      </div>
+    </section>
+
+    <!-- GATE: quiz per eiland -->
+    <section class="screen" id="screen-gate">
+      <div class="gate-wrap">
+        <span class="gate-icon">🧠</span>
+        <h1 class="gate-title">Eiland <span>Quizzen</span></h1>
+        <p class="gate-sub">Doe de quiz voor een eiland om bouwmaterialen te verdienen.<br>100% bouwen = volgend eiland ontgrendeld!</p>
+        <div id="gate-island-list"></div>
+      </div>
+    </section>
+
+    <!-- IN-GAME QUIZ -->
+    <section class="screen" id="screen-quiz">
+      <div class="ingame-quiz-wrap" id="ingame-quiz-content"></div>
+    </section>
+
+    <!-- ISLANDS -->
+    <section class="screen" id="screen-islands">
+      <div class="islands-top">
+        <h1>🗺️ 500 Eilanden</h1>
+        <div class="page-nav">
+          <button class="pnb" id="btn-prev" onclick="changePage(-1)" disabled>‹</button>
+          <span class="page-info" id="page-info">1/20</span>
+          <button class="pnb" id="btn-next" onclick="changePage(1)">›</button>
+        </div>
+      </div>
+      <div class="island-grid" id="island-grid"></div>
+    </section>
+
+    <!-- BUILD -->
+    <section class="screen" id="screen-build">
+      <div id="build-content"></div>
+    </section>
+
+    <!-- LEADERBOARD -->
+    <section class="screen" id="screen-leaderboard">
+      <div class="lb-header">
+        <h1>🏆 Leaderboard</h1>
+        <input class="lb-search" type="text" placeholder="🔍 Zoek speler..." oninput="filterLB(this.value)"/>
+      </div>
+      <div class="lb-filters">
+        <button class="lb-filter active" onclick="setLBFilter('all',this)">Alle</button>
+        <button class="lb-filter" onclick="setLBFilter('top10',this)">Top 10</button>
+        <button class="lb-filter" onclick="setLBFilter('klas',this)">Mijn klas</button>
+      </div>
+      <div class="lb-list" id="lb-list"></div>
+    </section>
+
+    <!-- SHOP -->
+    <section class="screen" id="screen-shop">
+      <div class="admin-wrap">
+        <div class="admin-header"><div><h1>🛒 Item Shop</h1><p style="color:var(--muted);margin-top:.2rem;">Koop achtergrond-effecten en muis-trails met coins.</p></div><span class="badge badge-accent">🪙 <span id="shop-coins">0</span> coins</span></div>
+        <div id="shop-content"></div>
+      </div>
+    </section>
+
+    <!-- TOETSEN VOOR LEERLINGEN -->
+    <section class="screen" id="screen-tests">
+      <div class="admin-wrap">
+        <div class="admin-header"><div><h1>📝 Mijn toetsen</h1><p style="color:var(--muted);margin-top:.2rem;">Maak toetsen die je docent voor jou heeft klaargezet.</p></div></div>
+        <div id="student-tests-content"></div>
+      </div>
+    </section>
+
+    <!-- EXTRA -->
+    <section class="screen" id="screen-extras">
+      <div class="admin-wrap">
+        <div class="admin-header"><div><h1>✨ Extra</h1><p style="color:var(--muted);margin-top:.2rem;">Handige functies die niet alleen over Island Clash gaan.</p></div></div>
+        <div class="admin-grid">
+          <div class="card"><h3>🔥 Dagelijkse streak</h3><div id="streak-card" style="margin-top:.6rem;"></div></div><div class="card"><h3>🎯 Docentmissie</h3><div id="daily-mission-view" style="color:var(--muted);font-size:.82rem;margin-top:.5rem">Nog geen missie.</div></div><div class="card"><h3>🏅 Mijn quizstatistieken</h3><div id="student-quiz-stats" style="color:var(--muted);font-size:.82rem;margin-top:.5rem"></div></div>
+          <div class="card"><h3>🕒 Focus timer</h3><p style="color:var(--muted);font-size:.82rem;margin:.4rem 0 .7rem;">Werk een tijdje geconcentreerd.</p><div style="font-size:2rem;font-weight:900;text-align:center" id="focus-time">25:00</div><div style="display:flex;gap:.4rem;margin-top:.7rem;"><button class="btn btn-primary btn-full" onclick="startFocusTimer()">▶ Start</button><button class="btn btn-secondary btn-full" onclick="resetFocusTimer()">↻ Reset</button></div></div>
+          <div class="card"><h3>📝 Mijn notities</h3><textarea id="personal-notes" placeholder="Schrijf hier iets op..."></textarea><button class="btn btn-success btn-full" style="margin-top:.5rem" onclick="savePersonalNotes()">💾 Opslaan</button></div>
+          <div class="card"><h3>🎯 Mijn doelen</h3><input id="personal-goal" placeholder="Bijv. 3 quizzen maken"/><button class="btn btn-primary btn-full" style="margin-top:.5rem" onclick="savePersonalGoal()">🎯 Doel opslaan</button><p id="personal-goal-view" style="color:var(--muted);font-size:.8rem;margin-top:.5rem;"></p></div></div>
+      </div>
+    </section>
+
+    <!-- STUDENT TOOLS -->
+    <section class="screen" id="screen-student-tools">
+      <div class="admin-wrap">
+        <div class="admin-header">
+          <h1>📚 Mijn voortgang</h1>
+          <span class="badge badge-accent">Alleen voor leerlingen</span>
+        </div>
+        <div id="student-tools-content"></div>
+      </div>
+    </section>
+
+    <!-- ADMIN -->
+    <section class="screen" id="screen-admin">
+      <div class="admin-wrap">
+        <div class="admin-header">
+          <h1>👩‍🏫 Docent Panel</h1>
+          <div style="display:flex;gap:.5rem;align-items:center;">
+            <span class="badge badge-accent" id="teacher-panel-badge">DOCENTEN</span>
+            <button class="btn btn-secondary btn-sm" onclick="renderAdmin()">↻ Vernieuwen</button>
+          </div>
+        </div>
+        <div class="admin-tabs">
+          <button class="admin-tab active" onclick="switchAdminTab('dashboard',this)">📊 Dashboard</button>
+          <button class="admin-tab" onclick="switchAdminTab('school',this)">🏫 Schoolbeheer</button>
+                    <button class="admin-tab" onclick="switchAdminTab('award',this)">🎁 Uitdelen</button>
+          <button class="admin-tab" onclick="switchAdminTab('quizbuilder',this)">🧠 Quiz maken</button>
+          <button class="admin-tab" onclick="switchAdminTab('progress',this)">📈 Voortgang</button>
+          <button class="admin-tab" onclick="switchAdminTab('assignments',this)">📝 Opdrachten</button><button class="admin-tab" onclick="switchAdminTab('quiz-rewards',this)">🎁 Quizbeloningen</button>
+          <button class="admin-tab" onclick="switchAdminTab('island-access',this)">🏝️ Eilanden</button>
+          <button class="admin-tab" onclick="switchAdminTab('streak',this)">🔥 Streak</button>
+          <button class="admin-tab" onclick="switchAdminTab('students',this)">👥 Leerlingen</button>
+          <button class="admin-tab" onclick="switchAdminTab('accounts',this)">🔐 Accounts</button>
+          <button class="admin-tab" onclick="switchAdminTab('tests',this)">📝 Toetsen</button>
+          <button class="admin-tab" onclick="switchAdminTab('island-grades',this)">🏝️ Cijfers eilanden</button>
+          <button class="admin-tab" onclick="switchAdminTab('shop-manager',this)">🛒 Shopbeheer</button>
+          <button class="admin-tab" onclick="switchAdminTab('tools',this)">🧰 Extra tools</button>
+          <button class="admin-tab" onclick="switchAdminTab('messages',this)">📢 Berichten</button>
+          <button class="admin-tab" onclick="switchAdminTab('badges',this)">🏅 Badges</button>
+          <button class="admin-tab" onclick="switchAdminTab('classroom',this)">🏫 Klassen</button>
+          <button class="admin-tab" onclick="openSchoolPanel(this)">📚 School</button>
+        </div>
+
+        <!-- LEERLINGEN BEKIJKEN -->
+        <div class="admin-panel" id="apanel-students">
+          <div class="admin-section">
+            <h2>👥 Mijn leerlingen</h2>
+            <p style="color:var(--muted);font-size:.82rem;margin-bottom:.8rem;">Bekijk per leerling de voortgang, quizscores, eilanden, XP en opdrachten.</p>
+            <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem;">
+              <input id="teacher-student-search" placeholder="🔍 Zoek leerling..." oninput="renderTeacherStudents()" style="flex:1;min-width:200px;">
+              <select id="teacher-student-class" onchange="renderTeacherStudents()"><option value="">Alle klassen</option></select>
+            </div>
+            <div id="teacher-students-list"></div>
+            <div id="teacher-student-detail" style="margin-top:1rem;"></div>
+          </div>
+        </div>
+
+        <!-- TOETSEN -->
+        <div class="admin-panel" id="apanel-tests">
+          <div class="admin-section">
+            <h2>📝 Toetsen maken & nakijken</h2>
+            <p style="color:var(--muted);font-size:.82rem;margin-bottom:1rem;">Maak eenvoudige toetsen met vragen en antwoorden. Leerlingen uit de gekozen klas kunnen de toets maken. Antwoorden worden automatisch nagekeken en je kunt daarna handmatig feedback geven.</p>
+            <div class="card" style="margin-bottom:1rem;">
+              <div style="display:grid;grid-template-columns:2fr 1fr;gap:.7rem;">
+                <div class="form-group"><label>Toetsnaam</label><input id="test-title" placeholder="Bijv. Aardrijkskunde – Hoofdstuk 1"></div>
+                <div class="form-group"><label>Klas</label><select id="test-class"><option value="">Alle leerlingen</option></select></div>
+              </div>
+              <div class="form-group"><label>Vragen toevoegen</label><p style="color:var(--muted);font-size:.76rem;margin-bottom:.55rem">Je hoeft geen <strong>|</strong> of andere tekens te gebruiken. Voeg elke vraag gewoon apart toe.</p><div id="test-question-builder"></div><button class="btn btn-secondary btn-sm" onclick="addTeacherTestQuestion()">➕ Vraag toevoegen</button></div>
+              <div class="card" style="margin-top:.8rem;background:var(--surface2);">
+                <h3 style="font-size:.9rem;">🎁 Beloningen na behalen</h3>
+                <p style="color:var(--muted);font-size:.74rem;margin:.25rem 0 .6rem">Geef automatisch Coins, XP, gems, trofeeën en bouwmaterialen wanneer de toets wordt ingeleverd.</p>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.5rem;">
+                  <input id="test-reward-coins" type="number" min="0" value="0" placeholder="🪙 Coins">
+                  <input id="test-reward-xp" type="number" min="0" value="0" placeholder="✨ XP">
+                  <input id="test-reward-gems" type="number" min="0" value="0" placeholder="💎 Gems">
+                  <input id="test-reward-trophies" type="number" min="0" value="0" placeholder="🏆 Trofeeën">
+                </div>
+                <div style="margin-top:.6rem;" id="test-reward-materials"></div>
+              </div>
+              <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.7rem"><button class="btn btn-primary" onclick="createTeacherTest()">📝 Toets maken</button><button class="btn btn-ghost" onclick="clearTeacherTestDraft()">🧹 Alles wissen</button></div>
+            </div>
+            <div id="teacher-tests-list"></div>
+            <div id="teacher-test-results" style="margin-top:1rem;"></div>
+          </div>
+        </div>
+
+        <!-- ISLAND GRADES -->
+        <div class="admin-panel" id="apanel-island-grades">
+          <div class="admin-section">
+            <h2>🏝️ Eilanden beoordelen</h2>
+            <p style="color:var(--muted);font-size:.82rem;margin-bottom:1rem;">Geef een leerling per eiland een cijfer en feedback. Het cijfer wordt bij de leerling opgeslagen.</p>
+            <div class="card" style="max-width:760px;">
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:.7rem;">
+                <div class="form-group"><label>👤 Leerling</label><select id="grade-island-user" onchange="renderIslandGradePreview()"></select></div>
+                <div class="form-group"><label>🏝️ Eiland</label><input id="grade-island-num" type="number" min="1" max="500" value="1" onchange="renderIslandGradePreview()"></div>
+                <div class="form-group"><label>📊 Cijfer (1–10)</label><input id="grade-island-score" type="number" min="1" max="10" step="0.1" placeholder="8.0"></div>
+              </div>
+              <div id="island-grade-preview" style="color:var(--muted);font-size:.82rem;margin:.4rem 0 .8rem;"></div>
+              <div class="form-group"><label>💬 Feedback</label><textarea id="grade-island-feedback" rows="3" placeholder="Bijvoorbeeld: Goed gebouwd en netjes afgewerkt."></textarea></div>
+              <button class="btn btn-success" onclick="saveIslandGrade()">💾 Cijfer opslaan</button>
+            </div>
+            <div id="island-grades-list" style="margin-top:1rem;"></div>
+          </div>
+        </div>
+
+<!-- SHOPBEHEER -->
+        <div class="admin-panel" id="apanel-shop-manager">
+          <div class="admin-section">
+            <h2>🛒 Shop beheren</h2>
+            <p style="color:var(--muted);font-size:.82rem;margin-bottom:1rem">Bepaal wat leerlingen met hun Coins kunnen kopen: achtergronden, mouse-effects, click sounds en titels.</p>
+            <div class="card" style="margin-bottom:1rem">
+              <div style="display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:.7rem">
+                <div class="form-group"><label>Naam</label><input id="shop-edit-name" placeholder="Bijv. 🔥 Pro Gamer"></div>
+                <div class="form-group"><label>Type</label><select id="shop-edit-type"><option value="bg">🌌 Achtergrond</option><option value="trail">🖱️ Mouse-effect</option><option value="sound">🔊 Click sound</option><option value="title">🏷️ Titel</option></select></div>
+                <div class="form-group"><label>Prijs in Coins</label><input id="shop-edit-price" type="number" min="0" value="100"></div>
+              </div>
+              <div style="display:grid;grid-template-columns:100px 1fr;gap:.7rem">
+                <div class="form-group"><label>Emoji</label><input id="shop-edit-icon" value="✨"></div>
+                <div class="form-group"><label>Beschrijving</label><input id="shop-edit-desc" placeholder="Korte uitleg voor leerlingen"></div>
+              </div>
+              <div class="form-group"><label>Effect-ID / waarde</label><input id="shop-edit-value" placeholder="Bijv. bg-stars, trail-fire, sound-pop of Elite"></div>
+              <div style="display:flex;gap:.5rem;flex-wrap:wrap"><button class="btn btn-primary" onclick="addShopItemTeacher()">➕ Item toevoegen</button><button class="btn btn-secondary" onclick="resetShopForm()">↺ Formulier leegmaken</button></div>
+            </div>
+            <div id="teacher-shop-list"></div>
+          </div>
+        </div>
+
+<!-- DASHBOARD -->
+        <div class="admin-panel active" id="apanel-dashboard">
+          <div class="admin-grid" id="admin-stats"></div>
+          <div class="admin-section">
+            <h2>🏆 Top leerlingen</h2>
+            <div class="table-wrap">
+              <table><thead><tr><th>#</th><th>Naam</th><th>Code</th><th>Klas</th><th>Eilanden</th><th>XP</th><th>🏆</th></tr></thead>
+              <tbody id="dash-tbody"></tbody></table>
+            </div>
+          </div>
+          <div class="admin-section">
+            <h2>🧠 Quiz statistieken</h2>
+            <div class="table-wrap">
+              <table><thead><tr><th>Eiland</th><th>Vragen</th><th>Keer gespeeld</th><th>Gem. score</th></tr></thead>
+              <tbody id="quiz-stats-tbody"></tbody></table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACCOUNTS -->
+        <div class="admin-panel" id="apanel-accounts">
+          <div class="admin-section">
+            <h2>🔐 Accounts, leerlingen & docenten</h2>
+            <p style="color:var(--muted);font-size:.82rem;margin-bottom:.9rem;">Maak leerlingen en docenten aan, bekijk alle inloggegevens en pas namen, wachtwoorden, klassen en leerlingcodes aan.</p>
+            <div class="admin-actions">
+              <button class="btn btn-primary btn-sm" onclick="openCreateStudentModal()">🎮 Nieuwe leerling</button>
+              <button class="btn btn-success btn-sm" onclick="openCreateTeacherModal()">👩‍🏫 Nieuwe docent</button>
+              <button class="btn btn-secondary btn-sm" onclick="switchAdminTab('classroom',document.querySelector('.admin-tab[onclick*=\"classroom\"]'))">🏫 Klassen/groepen beheren</button>
+              <button class="btn btn-secondary btn-sm" onclick="renderAccountsTable()">↻ Vernieuwen</button>
+            </div>
+            <div class="card" style="margin-bottom:1rem;background:var(--surface2);">
+              <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:end;">
+                <div class="form-group" style="margin:0;flex:1;min-width:200px;"><label>🔍 Zoek account</label><input id="account-search" placeholder="Naam of gebruikersnaam..." oninput="renderAccountsTable()"></div>
+                <div class="form-group" style="margin:0;min-width:180px;"><label>Rol</label><select id="account-role-filter" onchange="renderAccountsTable()"><option value="all">Alle accounts</option><option value="leerling">Alleen leerlingen</option><option value="docent">Alleen docenten</option></select></div>
+                <div class="form-group" style="margin:0;min-width:180px;"><label>Klas / groep</label><select id="account-group-filter" onchange="renderAccountsTable()"><option value="all">Alle klassen/groepen</option></select></div>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table><thead><tr><th>#</th><th>Naam</th><th>Rol</th><th>Klas</th><th>Groepen</th><th>Login code</th><th>Gebruikersnaam</th><th>Wachtwoord</th><th>Acties</th></tr></thead>
+              <tbody id="accounts-tbody"></tbody></table>
+            </div>
+          </div>
+        </div>
+
+        <!-- AWARD PANEL -->
+        <div class="admin-panel" id="apanel-award">
+          <div class="admin-section">
+            <h2>🎁 Beloningen & eilanden uitdelen</h2>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:1rem;margin-bottom:1.5rem;">
+
+              <!-- Selecteer leerling/klas -->
+              <div class="card">
+                <h3 style="font-size:.92rem;font-weight:900;margin-bottom:.85rem;">👤 Selecteer ontvanger</h3>
+                <div class="form-group"><label>Leerling</label><select id="aw-user"><option value="">— selecteer leerling —</option></select></div>
+                <div class="form-group"><label>Of hele klas</label><select id="aw-klas"><option value="">— of selecteer klas —</option></select></div>
+                <p style="font-size:.75rem;color:var(--muted);">Als een klas is geselecteerd gaat het naar alle leerlingen in die klas.</p>
+              </div>
+
+              <!-- Resources geven -->
+              <div class="card">
+                <h3 style="font-size:.92rem;font-weight:900;margin-bottom:.85rem;">💰 Resources geven</h3>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;">
+                  <div class="form-group" style="margin:0;"><label>🪙 Coins</label><input type="number" id="aw-coins" min="0" value="0"/></div>
+                  <div class="form-group" style="margin:0;"><label>💎 Gems</label><input type="number" id="aw-gems" min="0" value="0"/></div>
+                  <div class="form-group" style="margin:0;"><label>⚡ Elixir</label><input type="number" id="aw-elixir" min="0" value="0"/></div>
+                  <div class="form-group" style="margin:0;"><label>✨ XP</label><input type="number" id="aw-xp" min="0" value="0"/></div>
+                  <div class="form-group" style="margin:0;"><label>🏆 Trofeeën</label><input type="number" id="aw-trophies" min="0" value="0"/></div>
+                </div>
+                <button class="btn btn-success btn-full" style="margin-top:.75rem;" onclick="awardResources()">✅ Geef resources</button>
+              </div>
+
+              <!-- Bouwmaterialen geven -->
+              <div class="card">
+                <h3 style="font-size:.92rem;font-weight:900;margin-bottom:.85rem;">📦 Bouwmaterialen geven</h3>
+                <div id="award-items-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-bottom:.75rem;"></div>
+                <button class="btn btn-success btn-full" onclick="awardItems()">✅ Geef materialen</button>
+              </div>
+
+              <!-- Eiland ontgrendelen -->
+              <div class="card">
+                <h3 style="font-size:.92rem;font-weight:900;margin-bottom:.85rem;">🏝️ Eiland ontgrendelen</h3>
+                <p style="font-size:.78rem;color:var(--muted);margin-bottom:.75rem;">Markeer een eiland als 100% vol (gevuld met sterren) voor de geselecteerde leerling.</p>
+                <div class="form-group"><label>Eiland nummer (1–500)</label><input type="number" id="aw-island-num" min="1" max="500" value="1" placeholder="1-500"/></div>
+                <button class="btn btn-warning btn-full" onclick="awardIsland()">🔓 Ontgrendel eiland</button>
+              </div>
+
+              <!-- Resources verwijderen -->
+              <div class="card">
+                <h3 style="font-size:.92rem;font-weight:900;margin-bottom:.85rem;">🗑️ Resources verwijderen</h3>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;">
+                  <div class="form-group" style="margin:0;"><label>💎 Gems</label><input type="number" id="rm-gems" min="0" value="0"/></div>
+                  <div class="form-group" style="margin:0;"><label>✨ XP</label><input type="number" id="rm-xp" min="0" value="0"/></div>
+                  <div class="form-group" style="margin:0;"><label>🏆 Trofeeën</label><input type="number" id="rm-trophies" min="0" value="0"/></div>
+                  <div class="form-group" style="margin:0;"><label>⚡ Elixir</label><input type="number" id="rm-elixir" min="0" value="0"/></div>
+                </div>
+                <button class="btn btn-danger btn-full" style="margin-top:.75rem;" onclick="removeResources()">🗑️ Verwijder resources</button>
+              </div>
+
+              <!-- Eiland vergrendelen -->
+              <div class="card">
+                <h3 style="font-size:.92rem;font-weight:900;margin-bottom:.85rem;">🔒 Eiland vergrendelen</h3>
+                <p style="font-size:.78rem;color:var(--muted);margin-bottom:.75rem;">Reset de voortgang van een eiland terug naar 0%.</p>
+                <div class="form-group"><label>Eiland nummer (1–500)</label><input type="number" id="lock-island-num" min="1" max="500" value="1"/></div>
+                <button class="btn btn-danger btn-full" onclick="lockIsland()">🔒 Vergrendel eiland</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- QUIZ BUILDER -->
+        <div class="admin-panel" id="apanel-quizbuilder">
+          <div class="qb-wrap">
+            <div class="admin-section">
+              <h2>🏝️ Kies een eiland voor de quiz</h2>
+              <p style="color:var(--muted);font-size:.85rem;margin-bottom:.85rem;">Alle 500 eilanden hebben al een standaard quiz. Je kunt die hier aanpassen of vervangen.</p>
+              <div style="display:flex;gap:.5rem;margin-bottom:.65rem;">
+                <input type="text" id="qb-search" placeholder="🔍 Zoek eiland..." style="padding:.5rem .9rem;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:'Nunito',sans-serif;font-size:.85rem;flex:1;" oninput="renderQBIslandSelect()"/>
+              </div>
+              <div class="qb-island-select" id="qb-island-select"></div>
+            </div>
+            <div class="card" style="margin-bottom:.7rem;background:var(--surface2);">
+              <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;">
+                <select id="qb-quiz-select" onchange="selectQBQuiz(this.value)" style="flex:1;min-width:180px"><option value="">— selecteer quiz —</option></select>
+                <button class="btn btn-secondary btn-sm" onclick="newQBQuiz()">➕ Nieuwe quiz op dit eiland</button>
+              </div>
+              <div class="form-group" style="margin-top:.6rem;margin-bottom:0;"><label>Quiznaam</label><input id="qb-quiz-title" placeholder="Bijv. Basiskennis, Moeilijk, Herhaling..."></div>
+            </div>
+            <div id="quiz-builder-editor" class="hidden">
+              <div class="quiz-editor">
+                <div class="quiz-editor-header">
+                  <h3 id="qb-editor-title">Quiz voor eiland</h3>
+                  <div style="display:flex;gap:.5rem;">
+                    <button class="btn btn-secondary btn-sm" onclick="addQuestion()">+ Vraag</button>
+                    <button class="btn btn-success btn-sm" onclick="saveQuiz()">💾 Opslaan</button>
+                    <button class="btn btn-primary btn-sm" onclick="previewQuiz()">👁️ Preview</button>
+                  </div>
+                </div>
+                <div id="qb-questions-list"></div>
+                <div id="qb-empty-msg" style="text-align:center;padding:2rem;color:var(--muted);font-size:.88rem;">Nog geen vragen. Klik op "+ Vraag".</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PROGRESS PANEL -->
+        <div class="admin-panel" id="apanel-progress">
+          <div class="admin-section">
+            <h2>📈 Voortgang per leerling</h2>
+            <div style="display:flex;gap:.6rem;margin-bottom:1rem;flex-wrap:wrap;align-items:flex-end;">
+              <div class="form-group" style="margin:0;min-width:180px;"><label>Filter op klas</label><select id="prog-klas-filter" onchange="renderProgress()"><option value="">Alle klassen</option></select></div>
+            </div>
+            <div id="prog-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.85rem;"></div>
+          </div>
+        </div>
+
+        <!-- QUIZ BELONINGEN -->
+        <div class="admin-panel" id="apanel-quiz-rewards">
+          <div class="admin-section">
+            <h2>🎁 Quizbeloningen instellen</h2>
+            <p style="color:var(--muted);font-size:.85rem;margin-bottom:1rem;">De docent bepaalt hoeveel een leerling verdient. De docent kan dit aanpassen.</p>
+            <div class="card" style="max-width:650px;">
+              <div class="form-group"><label>🧠 Quiznummer</label><input id="reward-quiz-num" type="number" min="1" max="500" value="1" oninput="renderQuizRewardSettings()"></div>
+              <p id="reward-quiz-info" style="color:var(--muted);font-size:.8rem;margin-bottom:.8rem;"></p>
+              <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.6rem;">
+                <div class="form-group"><label>🪙 Coins</label><input id="reward-coins" type="number" min="0" value="25"></div>
+                <div class="form-group"><label>✨ XP</label><input id="reward-xp" type="number" min="0" value="100"></div>
+                <div class="form-group"><label>💎 Gems</label><input id="reward-gems" type="number" min="0" value="0"></div>
+                <div class="form-group"><label>🏆 Trofeeën</label><input id="reward-trophies" type="number" min="0" value="0"></div>
+              </div>
+              <button class="btn btn-success btn-full" onclick="saveQuizReward()">💾 Beloning opslaan</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- QUIZ OPDRACHTEN -->
+        <div class="admin-panel" id="apanel-assignments">
+          <div class="admin-section">
+            <h2>📝 Quiz-opdrachten</h2>
+            <p style="color:var(--muted);font-size:.85rem;margin-bottom:1rem;">Geef een quiz op aan één leerling of een hele klas. De opdracht verschijnt direct bij leerlingen.</p>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;">
+              <div class="card">
+                <div class="form-group"><label>🏝️ Eilandnummer</label><input id="assign-island" type="number" min="1" max="500" value="1"></div>
+                <div class="form-group"><label>👤 Leerling</label><select id="assign-user"><option value="">— geen specifieke leerling —</option></select></div>
+                <div class="form-group"><label>🏫 Of hele klas</label><select id="assign-class"><option value="">— geen klas —</option></select></div>
+                <div class="form-group"><label>📅 Deadline</label><input id="assign-deadline" type="date"></div>
+                <div class="form-group"><label>💬 Opmerking</label><textarea id="assign-note" placeholder="Bijv. Maak deze quiz voor vrijdag."></textarea></div>
+                <button class="btn btn-primary btn-full" onclick="createQuizAssignment()">📝 Opdracht plaatsen</button>
+              </div>
+              <div class="card">
+                <h3 style="font-size:.92rem;font-weight:900;margin-bottom:.75rem;">📋 Geplaatste opdrachten</h3>
+                <div id="teacher-assignment-list" style="display:grid;gap:.5rem;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DOCENT TOOLS -->
+        <div class="admin-panel" id="apanel-teacher-tools">
+          <div class="admin-section">
+            <h2>👩‍🏫 Docenttools</h2>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:1rem;">
+              <div class="card">
+                <h3 style="font-size:.92rem;font-weight:900;margin-bottom:.85rem;">📢 Bericht aan leerlingen</h3>
+                <div class="form-group"><label>Bericht</label><textarea id="teacher-announcement" placeholder="Bijvoorbeeld: Morgen maken we eiland 10. Succes!"></textarea></div>
+                <button class="btn btn-primary btn-full" onclick="saveTeacherAnnouncement()">📢 Publiceer bericht</button>
+              </div>
+              <div class="card">
+                <h3 style="font-size:.92rem;font-weight:900;margin-bottom:.85rem;">🎯 Opdracht instellen</h3>
+                <div class="form-group"><label>Doel</label><input id="teacher-goal" placeholder="Bijv. Maak 3 quizzen"/></div>
+                <div class="form-group"><label>Beloning XP</label><input type="number" id="teacher-goal-xp" min="0" value="100"/></div>
+                <button class="btn btn-success btn-full" onclick="saveTeacherGoal()">🎯 Stel doel in</button>
+              </div>
+              <div class="card">
+                <h3 style="font-size:.92rem;font-weight:900;margin-bottom:.85rem;">📊 Klasoverzicht</h3>
+                <div id="teacher-class-summary" style="font-size:.85rem;color:var(--muted);">Klik op vernieuwen om het overzicht te laden.</div>
+                <button class="btn btn-secondary btn-full" style="margin-top:.7rem;" onclick="renderTeacherTools()">↻ Vernieuwen</button>
+              </div>
+              <div class="card">
+                <h3 style="font-size:.92rem;font-weight:900;margin-bottom:.85rem;">📥 Export</h3>
+                <p style="font-size:.78rem;color:var(--muted);margin-bottom:.75rem;">Exporteer een overzicht van leerlingen, klassen, XP en eilanden.</p>
+                <button class="btn btn-primary btn-full" onclick="exportTeacherCSV()">📥 Download CSV</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- EXTRA DOCENTFUNCTIES -->
+        <div class="admin-panel" id="apanel-messages">
+          <div class="admin-section"><h2>📢 Berichten & meldingen</h2>
+            <div class="admin-grid">
+              <div class="card"><h3>📢 Snel bericht</h3><p style="color:var(--muted);font-size:.78rem;margin:.4rem 0 .7rem">Dit bericht verschijnt direct bij leerlingen.</p><textarea id="teacher-message-new" placeholder="Typ een bericht..."></textarea><button class="btn btn-primary btn-full" style="margin-top:.6rem" onclick="publishTeacherMessage()">📢 Publiceren</button></div>
+              <div class="card"><h3>🔔 Herinnering</h3><p style="color:var(--muted);font-size:.78rem;margin:.4rem 0 .7rem">Een korte herinnering voor de klas.</p><input id="teacher-reminder-new" placeholder="Bijv. Vergeet je toets niet!"><button class="btn btn-warning btn-full" style="margin-top:.6rem" onclick="publishTeacherReminder()">🔔 Opslaan</button></div>
+            </div>
+            <div class="card" style="margin-top:1rem"><h3>📜 Huidige berichten</h3><div id="teacher-message-list"></div></div>
+          </div>
+        </div>
+
+        <div class="admin-panel" id="apanel-badges">
+          <div class="admin-section"><h2>🏅 Badges uitdelen</h2>
+            <div class="card"><div class="admin-grid">
+              <div class="form-group"><label>Leerling</label><select id="badge-user"></select></div>
+              <div class="form-group"><label>Badge</label><select id="badge-type"><option value="starter">🌱 Starter</option><option value="quizmaster">🧠 Quizmaster</option><option value="builder">🏝️ Eilandbouwer</option><option value="perfect">💯 Perfecte Quiz</option><option value="xp">⭐ XP-verzamelaar</option><option value="streak">🔥 Streakheld</option></select></div>
+            </div><div class="form-group"><label>Persoonlijk bericht</label><input id="badge-note" placeholder="Goed gedaan!"></div><button class="btn btn-success" onclick="awardTeacherBadge()">🏅 Badge geven</button></div>
+            <div class="card" style="margin-top:1rem"><h3>🏅 Uitgedeelde badges</h3><div id="teacher-badge-list"></div></div>
+          </div>
+        </div>
+
+        <div class="admin-panel" id="apanel-classroom">
+          <div class="admin-section">
+            <h2>🏫 Klassen & groepen</h2>
+            <p style="color:var(--muted);font-size:.82rem;margin-bottom:.9rem;">Maak klassen en vrije groepen, voeg leerlingen toe en gebruik ze daarna bij uitdelen, voortgang en opdrachten.</p>
+            <div class="admin-grid">
+              <div class="card">
+                <h3>➕ Nieuwe klas / groep</h3>
+                <div class="form-group" style="margin-top:.7rem;"><label>Naam</label><input id="group-name" placeholder="Bijv. 2A of Team Blauw"></div>
+                <div class="form-group"><label>Type</label><select id="group-type"><option value="klas">🏫 Klas</option><option value="groep">👥 Groep</option></select></div>
+                <button class="btn btn-primary btn-full" onclick="createAccountGroup()">➕ Aanmaken</button>
+              </div>
+              <div class="card">
+                <h3>📊 Klasstatistieken</h3>
+                <div id="classroom-stats" style="margin-top:.6rem;"></div>
+              </div>
+              <div class="card">
+                <h3>⚡ Snelle acties</h3>
+                <select id="classroom-class" style="width:100%;margin-top:.6rem"></select>
+                <button class="btn btn-primary btn-full" style="margin-top:.5rem" onclick="classroomGiveXP()">✨ +100 XP aan klas</button>
+                <button class="btn btn-warning btn-full" style="margin-top:.5rem" onclick="classroomGiveCoins()">🪙 +100 Coins aan klas</button>
+              </div>
+            </div>
+            <div class="card" style="margin-top:1rem"><h3>🏷️ Klassen en groepen</h3><div id="account-groups-list" style="margin-top:.7rem"></div></div>
+            <div class="card" style="margin-top:1rem"><h3>👥 Leerlingen per klas/groep</h3><div id="classroom-list"></div></div>
+          </div>
+        </div>
+
+        <!-- SCHOOL MODULE -->
+        <div class="admin-panel" id="apanel-school"></div>
+
+        <!-- ISLAND ACCESS -->
+        <div class="admin-panel" id="apanel-island-access"><div class="admin-section"><h2>🏝️ Eilanden openzetten</h2><p style="color:var(--muted);font-size:.82rem;margin-bottom:1rem">Open een specifiek eiland voor een leerling of een hele klas.</p><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem"><div class="form-group"><label>Eilandnummer</label><input id="unlock-island" type="number" min="1" max="500" value="1"></div><div class="form-group"><label>Leerling</label><select id="unlock-user"><option value="">— kies leerling —</option></select></div><div class="form-group"><label>Of klas</label><select id="unlock-class"><option value="">— kies klas —</option></select></div></div><button class="btn btn-primary" onclick="teacherUnlockIslands()">🔓 Eiland openen</button></div></div>
+
+        <!-- STREAK -->
+        <div class="admin-panel" id="apanel-streak"><div class="admin-section"><h2>🔥 Dagelijkse streak instellen</h2><p style="color:var(--muted);font-size:.82rem;margin-bottom:1rem">De docent bepaalt of leerlingen dagelijks kunnen inloggen voor een streak en hoeveel coins ze krijgen.</p><div class="card" style="max-width:600px"><label style="display:flex;gap:.5rem;align-items:center;margin-bottom:1rem"><input id="streak-enabled" type="checkbox"> Dagelijkse streak inschakelen</label><div class="form-group"><label>🎯 Doel aantal dagen</label><input id="streak-target" type="number" min="1" max="365" value="7"></div><div class="form-group"><label>🪙 Coins per dagelijkse claim</label><input id="streak-reward" type="number" min="0" max="10000" value="25"></div><button class="btn btn-success" onclick="saveTeacherStreakSettings()">💾 Streak-instellingen opslaan</button></div></div></div>
+
+        <!-- SETTINGS -->
+        <div class="admin-panel" id="apanel-settings">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:1rem;">
+            <div class="card">
+              <h3 style="font-size:.92rem;font-weight:900;margin-bottom:.85rem;">🔢 Slots per eiland</h3>
+              <p style="font-size:.78rem;color:var(--muted);margin-bottom:.75rem;">Huidig: <strong id="slots-current-val">20</strong> slots</p>
+              <div class="form-group"><label>Nieuw aantal (5–50)</label><input type="range" id="slots-range" min="5" max="50" value="20" oninput="document.getElementById('slots-preview').textContent=this.value" style="width:100%;accent-color:var(--accent);"/></div>
+              <p style="font-size:.8rem;color:var(--accent4);">Preview: <strong id="slots-preview">20</strong></p>
+              <button class="btn btn-warning btn-full" style="margin-top:.6rem;" onclick="saveSlotsSettings()">Opslaan</button>
+            </div>
+            <div class="card">
+              <h3 style="font-size:.92rem;font-weight:900;margin-bottom:.85rem;">🌐 Quiz website URL</h3>
+              <div class="form-group"><label>URL van quiz website</label><input type="text" id="setting-quiz-url" value="https://digisprint.nl/quiz" placeholder="https://..."/></div>
+              <button class="btn btn-success btn-full" onclick="saveQuizUrlSetting()">Opslaan</button>
+            </div>
+            <div class="card">
+              <h3 style="font-size:.92rem;font-weight:900;margin-bottom:.85rem;">💥 Data beheer</h3>
+              <p style="font-size:.78rem;color:var(--muted);margin-bottom:.75rem;">⚠️ Pas op: dit is onomkeerbaar!</p>
+              <button class="btn btn-danger btn-full btn-sm" style="margin-bottom:.4rem;" onclick="resetAllProgress()">🗑️ Reset alle voortgang leerlingen</button>
+              <button class="btn btn-danger btn-full btn-sm" style="margin-bottom:.4rem;" onclick="resetAllQuizDone()">🗑️ Reset alle quizvoortgang</button>
+              <button class="btn btn-danger btn-full btn-sm" onclick="if(confirm('Alle leerling-accounts verwijderen?')){accounts=accounts.filter(a=>a.role!=='leerling');saveAccounts();renderAdmin();showToast('Leerlingen verwijderd','warning');}">🗑️ Verwijder alle leerlingen</button>
+            </div>
+            <div class="card">
+              <h3 style="font-size:.92rem;font-weight:900;margin-bottom:.85rem;">📤 Exporteer data</h3>
+              <p style="font-size:.78rem;color:var(--muted);margin-bottom:.75rem;">Download alle leerlingdata als JSON.</p>
+              <button class="btn btn-primary btn-full btn-sm" onclick="exportData()">📥 Download data</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Island modal -->
+<div class="modal-overlay" id="isl-modal-overlay" onclick="if(event.target===this)this.classList.remove('active')">
+  <div class="modal" style="max-width:400px;">
+    <button class="modal-close" onclick="document.getElementById('isl-modal-overlay').classList.remove('active')">×</button>
+    <div style="display:flex;align-items:center;gap:.9rem;margin-bottom:1.1rem;">
+      <span style="font-size:2.2rem;" id="im-emoji">🏝️</span>
+      <div><div style="font-size:1.15rem;font-weight:900;" id="im-title">Eiland</div><div style="color:var(--muted);font-size:.8rem;" id="im-sub">—</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.9rem;" id="im-stats"></div>
+    <div id="im-locked-notice" class="hidden" style="background:rgba(255,101,132,.1);border:1px solid rgba(255,101,132,.3);border-radius:var(--radius-sm);padding:.6rem;text-align:center;color:var(--accent2);font-weight:800;margin-bottom:.85rem;font-size:.83rem;"></div>
+    <div id="im-complete-banner" class="hidden" style="background:rgba(67,233,123,.1);border:1px solid rgba(67,233,123,.3);border-radius:var(--radius-sm);padding:.6rem;text-align:center;color:var(--accent3);font-weight:800;margin-bottom:.85rem;">✅ Eiland 100% vol!</div>
+    <button class="btn btn-primary btn-full" id="im-build-btn" onclick="goToBuildFromModal()">🏗️ Bouwen →</button>
+  </div>
+</div>
+
+<!-- Create account modal -->
+<div class="modal-overlay" id="create-acc-modal" onclick="if(event.target===this)this.classList.remove('active')">
+  <div class="modal" style="max-width:420px;">
+    <button class="modal-close" onclick="document.getElementById('create-acc-modal').classList.remove('active')">×</button>
+    <h2 style="margin-bottom:.25rem;">👤 Account aanmaken</h2>
+    <p style="color:var(--muted);font-size:.83rem;margin-bottom:1.2rem;">Maak een leerling of extra docent aan en koppel deze direct aan een klas.</p>
+    <div class="form-group"><label>Volledige naam</label><input type="text" id="ca-name" placeholder="bv. Jan de Vries"/></div>
+    <div class="form-group"><label>Klas</label><select id="ca-class"></select></div>
+    <div class="form-group"><label>Rol</label>
+      <select id="ca-role" onchange="toggleDocentFields()">
+        <option value="leerling">🎮 Leerling (inlogcode)</option>
+        <option value="docent">👩‍🏫 Docent (gebruikersnaam + wachtwoord)</option>
+      </select>
+    </div>
+    <div id="ca-docent-fields" class="hidden">
+      <div class="form-group"><label>Gebruikersnaam</label><input type="text" id="ca-user" placeholder="bv. jansen"/></div>
+      <div class="form-group"><label>Wachtwoord</label><input type="password" id="ca-pass" placeholder="Minimaal 4 tekens"/></div>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="createAccountSafe()">Account aanmaken →</button>
+    <div id="ca-result" class="hidden" style="margin-top:.85rem;">
+      <div class="account-code-box">
+        <div class="ac-label" id="ca-code-label">Inlogcode leerling</div>
+        <div class="ac-code" id="ca-code-display">—</div>
+      </div>
+      <p style="font-size:.78rem;color:var(--muted);margin-top:.45rem;text-align:center;" id="ca-code-hint">Geef deze code aan de leerling.</p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/supabase-config.js"></script>
+<script src="/supabase-database.js"></script>
+<script src="/cloud-sync.js"></script>
+<script src="/supabase-login.js"></script>
+<script src="/app.js"></script>
+<script src="/school-module.js"></script>
+</body>
+</html>
